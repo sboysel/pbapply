@@ -1,3 +1,43 @@
+#' @name pbapply
+#' @title \code{apply} family functions with progress bars
+#' @aliases pbsapply
+#' @aliases pblapply
+#' @aliases pbreplicate
+#'
+#' @param X either an array for \code{pbapply} or a vector (or list) for
+#' \code{pblapply}, \code{pbsapply}, and \code{pbreplicate}
+#' @param MARGIN a vector giving the subscripts which the function will be 
+#' applied over. E.g., for a matrix 1 indicates rows, 2 indicates columns, 
+#' c(1, 2) indicates rows and columns. Where X has named dimnames, it can be a 
+#' character vector selecting dimension names.
+#' @param FUN the function to be applied: see 'Details'. In the case of 
+#' functions like +, \%*\%, etc., the function name must be backquoted or quoted.
+#' @param ... optional arguments to \code{FUN}
+#' @param n integer: the number of replications.
+#' @param expr the expression to evaluate repeatedly.
+#' @param simplify logical or character string; should the result be simplified 
+#' to a vector, matrix or higher dimensional array if possible? For sapply it 
+#' must be named and not abbreviated. The default value, TRUE, returns a vector 
+#' or matrix if appropriate, whereas if simplify = "array" the result may be an 
+#' \code{\link[base]{array}} of "rank" (=length(dim(.))) one higher than the 
+#' result of FUN(X[[i]]).
+#' @param USE.NAMES logical; if TRUE and if X is character, use X as 
+#' \code{\link[base]{names}} for the result unless it had names already. Since 
+#' this argument follows ... its name cannot be abbreviated.
+#' 
+#' @examples 
+#' x <- sapply(1:10, function(x) runif(10))
+#' y <- lapply(1:10, function(x) runif(10))
+#' 
+#' pbapply(x, 1, mean)
+#' pbsapply(y, mean)
+#' pblapply(y, mean)
+#' 
+#' @description Wrap \code{\link[base]{apply}} family with progress bars.
+#' @seealso \code{\link[base]{apply}}, \code{\link[base]{sapply}}, 
+#' \code{\link[base]{lapply}}, \code{\link[base]{replicate}}
+#' @rdname pbapply
+#' @export
 pbapply <-
 function (X, MARGIN, FUN, ...) 
 {
@@ -97,3 +137,46 @@ function (X, MARGIN, FUN, ...)
     }
     return(ans)
 }
+
+#' @rdname pbapply
+#' @export
+pbsapply <-
+  function (X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) 
+  {
+    FUN <- match.fun(FUN)
+    answer <- pblapply(X = X, FUN = FUN, ...) # pb_specific_code
+    if (USE.NAMES && is.character(X) && is.null(names(answer))) 
+      names(answer) <- X
+    if (!identical(simplify, FALSE) && length(answer)) 
+      simplify2array(answer, higher = (simplify == "array"))
+    else answer
+  }
+
+#' @rdname pbapply
+#' @export
+pblapply <-
+function (X, FUN, ...)
+{
+    FUN <- match.fun(FUN)
+    if (!is.vector(X) || is.object(X)) 
+        X <- as.list(X)
+    B <- length(X)
+    if (!(interactive() && dopb() && B >= 1)) 
+        return(lapply(X, FUN, ...))
+    pb <- startpb(0, B)
+    rval <- vector("list", B)
+    for (i in 1:B) {
+        rval[i] <- list(FUN(X[[i]], ...))
+        setpb(pb, i)
+    }
+    close(pb)
+    names(rval) <- names(X)
+    rval
+}
+
+#' @rdname pbapply
+#' @export
+pbreplicate <-
+  function (n, expr, simplify = "array") 
+    pbsapply(integer(n), eval.parent(substitute(function(...) expr)), 
+             simplify = simplify)

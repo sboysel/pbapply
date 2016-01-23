@@ -1,3 +1,16 @@
+#' Options for \code{pbapply} functions
+#' 
+#' @param ... Pass named arguments to set \code{pbapply} options.  Run with no
+#' arguments to list currently set options.
+#' 
+#' @examples
+#' pboptions() # lists current arguments
+#' pboptions(char = "=", txt.width = 80)
+#' pboptions(style = 1) # No percent
+#' ## Reload package to reset defaults
+#' 
+#' @seealso \code{\link[utils]{txtProgressBar}}
+#' @export
 pboptions <-
 function(...)
 {
@@ -11,6 +24,9 @@ function(...)
             npar[match(names(args), names(npar))] <- args
         }
         options("pboptions"=npar)
+        invisible(opar)
+    } else {
+      opar
     }
-    invisible(opar)
+    
 }
