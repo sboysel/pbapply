@@ -14,7 +14,7 @@ useful for the user (e.g. bootstrap).
 
 ### Build status for development version
 
-[![Build Status](https://travis-ci.org/psolymos/pbapply.svg?branch=master)](https://travis-ci.org/psolymos/pbapply)
+[![Travis](https://img.shields.io/travis/sboysel/pbapply.svg?style=flat-square)](https://travis-ci.org/sboysel/pbapply)
 
 ## Report a problem
 
