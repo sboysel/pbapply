@@ -1,0 +1,6 @@
+packrat/
+packrat/lib*/
+.Rproj.user
+.Rhistory
+.Rprofile
+pbapply.Rproj
